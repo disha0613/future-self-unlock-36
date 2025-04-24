@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -21,13 +20,12 @@ type VoiceNote = {
 };
 
 interface AppContextType {
-  // App lock state
   isLocked: boolean;
-  lockApp: () => void;
+  lockApp: (duration?: number) => void;
   unlockApp: () => void;
   lockUntil: Date | null;
+  resetLock: () => void;
   
-  // Tasks state
   tasks: Task[];
   addTask: (text: string) => void;
   removeTask: (id: string) => void;
@@ -35,15 +33,12 @@ interface AppContextType {
   tasksLocked: boolean;
   lockTasks: () => void;
   
-  // Journal state
   journalEntries: JournalEntry[];
   addJournalEntry: (content: string) => void;
   
-  // Voice notes state
   voiceNotes: VoiceNote[];
   addVoiceNote: (audioUrl: string) => void;
   
-  // Streak state
   currentStreak: number;
   incrementStreak: () => void;
   resetStreak: () => void;
@@ -54,6 +49,7 @@ const defaultContext: AppContextType = {
   lockApp: () => {},
   unlockApp: () => {},
   lockUntil: null,
+  resetLock: () => {},
   
   tasks: [],
   addTask: () => {},
@@ -80,24 +76,18 @@ export const useApp = () => useContext(AppContext);
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { toast } = useToast();
   
-  // App lock state
   const [isLocked, setIsLocked] = useState<boolean>(false);
   const [lockUntil, setLockUntil] = useState<Date | null>(null);
   
-  // Tasks state
   const [tasks, setTasks] = useState<Task[]>([]);
   const [tasksLocked, setTasksLocked] = useState<boolean>(false);
   
-  // Journal state
   const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
   
-  // Voice notes state
   const [voiceNotes, setVoiceNotes] = useState<VoiceNote[]>([]);
   
-  // Streak state
   const [currentStreak, setCurrentStreak] = useState<number>(0);
 
-  // Check if app should still be locked
   useEffect(() => {
     const storedLockUntil = localStorage.getItem('lockUntil');
     if (storedLockUntil) {
@@ -111,40 +101,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     }
     
-    // Load tasks from localStorage
     const storedTasks = localStorage.getItem('tasks');
     if (storedTasks) {
       setTasks(JSON.parse(storedTasks));
     }
     
-    // Load tasks locked state
     const storedTasksLocked = localStorage.getItem('tasksLocked');
     if (storedTasksLocked) {
       setTasksLocked(JSON.parse(storedTasksLocked));
     }
     
-    // Load journal entries
     const storedEntries = localStorage.getItem('journalEntries');
     if (storedEntries) {
       setJournalEntries(JSON.parse(storedEntries));
     }
     
-    // Load voice notes
     const storedVoiceNotes = localStorage.getItem('voiceNotes');
     if (storedVoiceNotes) {
       setVoiceNotes(JSON.parse(storedVoiceNotes));
     }
     
-    // Load streak data
     const storedStreak = localStorage.getItem('currentStreak');
     if (storedStreak) {
       setCurrentStreak(parseInt(storedStreak, 10));
     }
   }, []);
 
-  // App locking functions
-  const lockApp = () => {
-    const lockDuration = 12 * 60 * 60 * 1000; // 12 hours in milliseconds
+  const lockApp = (duration?: number) => {
+    const lockDuration = duration || (12 * 60 * 60 * 1000);
     const unlockTime = new Date(Date.now() + lockDuration);
     setIsLocked(true);
     setLockUntil(unlockTime);
@@ -152,11 +136,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     
     toast({
       title: "App Locked",
-      description: "You've chosen not to show up today. The app will be locked for 12 hours.",
+      description: "You've chosen not to show up today. The app will be locked until the specified time.",
       variant: "destructive"
     });
   };
-  
+
   const unlockApp = () => {
     setIsLocked(false);
     setLockUntil(null);
@@ -169,7 +153,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
-  // Task functions
+  const resetLock = () => {
+    setIsLocked(false);
+    setLockUntil(null);
+    localStorage.removeItem('lockUntil');
+    toast({
+      title: "Lock Reset",
+      description: "You've been given another chance. Make it count.",
+    });
+  };
+
   const addTask = (text: string) => {
     if (tasksLocked) {
       toast({
@@ -222,7 +215,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setTasks(updatedTasks);
     localStorage.setItem('tasks', JSON.stringify(updatedTasks));
     
-    // Check if all tasks are complete
     const allComplete = updatedTasks.every(task => task.completed);
     if (allComplete) {
       toast({
@@ -242,7 +234,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
-  // Journal functions
   const addJournalEntry = (content: string) => {
     const newEntry = {
       id: Date.now().toString(),
@@ -260,7 +251,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
-  // Voice note functions
   const addVoiceNote = (audioUrl: string) => {
     const newVoiceNote = {
       id: Date.now().toString(),
@@ -278,7 +268,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
-  // Streak functions
   const incrementStreak = () => {
     const newStreak = currentStreak + 1;
     setCurrentStreak(newStreak);
@@ -301,6 +290,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     lockApp,
     unlockApp,
     lockUntil,
+    resetLock,
     
     tasks,
     addTask,

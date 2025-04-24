@@ -3,11 +3,12 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/context/AppContext';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles } from 'lucide-react';
+import { RotateCw, Sparkles } from 'lucide-react';
 
 const MirrorRoom = () => {
-  const { isLocked, lockApp, unlockApp, lockUntil } = useApp();
+  const { isLocked, lockApp, unlockApp, lockUntil, resetLock } = useApp();
   const [isDeciding, setIsDeciding] = useState(false);
+  const [customHours, setCustomHours] = useState<number>(12);
   const navigate = useNavigate();
 
   const handleUnlock = () => {
@@ -22,20 +23,19 @@ const MirrorRoom = () => {
   const handleLock = () => {
     setIsDeciding(true);
     setTimeout(() => {
-      lockApp();
+      lockApp(customHours * 60 * 60 * 1000); // Convert hours to milliseconds
       setIsDeciding(false);
     }, 1000);
   };
 
   if (isLocked && lockUntil) {
-    // Display locked screen
     const timeRemaining = Math.max(0, new Date(lockUntil).getTime() - Date.now());
     const hoursRemaining = Math.floor(timeRemaining / (1000 * 60 * 60));
     const minutesRemaining = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
     
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center gap-8 animate-fade-in">
-        <h1 className="text-2xl font-bold warning-text">App Locked</h1>
+        <h1 className="text-2xl font-bold text-red-500">App Locked</h1>
         
         <div className="glass-panel p-8 max-w-md w-full">
           <p className="text-lg mb-8">
@@ -46,9 +46,18 @@ const MirrorRoom = () => {
             <span className="warning-text">{hoursRemaining}h {minutesRemaining}m</span>
           </div>
           
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-gray-400 mb-8">
             Time remaining until you can try again.
           </p>
+
+          <Button
+            variant="outline"
+            onClick={resetLock}
+            className="w-full border-red-500/50 hover:bg-red-500/10 group transition-all duration-300"
+          >
+            <RotateCw className="mr-2 h-4 w-4" />
+            I Want to Change Myself
+          </Button>
         </div>
         
         <p className="text-sm text-gray-500 mt-4 max-w-xs">
@@ -82,14 +91,26 @@ const MirrorRoom = () => {
             <span className="neon-text">I'M HER</span>
           </Button>
           
-          <Button
-            variant="ghost" 
-            className="w-full py-7 text-lg hover:bg-warning/10"
-            disabled={isDeciding}
-            onClick={handleLock}
-          >
-            <span className="warning-text">Not ready</span>
-          </Button>
+          <div className="space-y-3">
+            <input
+              type="number"
+              min="1"
+              max="72"
+              value={customHours}
+              onChange={(e) => setCustomHours(Math.max(1, Math.min(72, parseInt(e.target.value) || 12)))}
+              className="w-full bg-black/30 border border-white/10 rounded px-4 py-2 text-center mb-2"
+              placeholder="Lock duration in hours"
+            />
+            
+            <Button
+              variant="ghost" 
+              className="w-full py-7 text-lg hover:bg-warning/10"
+              disabled={isDeciding}
+              onClick={handleLock}
+            >
+              <span className="warning-text">Not ready ({customHours}h lockout)</span>
+            </Button>
+          </div>
         </div>
         
         <p className="text-sm text-gray-500 mt-4">
