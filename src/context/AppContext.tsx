@@ -14,6 +14,12 @@ type JournalEntry = {
   date: string;
 };
 
+type VoiceNote = {
+  id: string;
+  audioUrl: string;
+  date: string;
+};
+
 interface AppContextType {
   // App lock state
   isLocked: boolean;
@@ -32,6 +38,10 @@ interface AppContextType {
   // Journal state
   journalEntries: JournalEntry[];
   addJournalEntry: (content: string) => void;
+  
+  // Voice notes state
+  voiceNotes: VoiceNote[];
+  addVoiceNote: (audioUrl: string) => void;
   
   // Streak state
   currentStreak: number;
@@ -55,6 +65,9 @@ const defaultContext: AppContextType = {
   journalEntries: [],
   addJournalEntry: () => {},
   
+  voiceNotes: [],
+  addVoiceNote: () => {},
+  
   currentStreak: 0,
   incrementStreak: () => {},
   resetStreak: () => {},
@@ -77,6 +90,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   
   // Journal state
   const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
+  
+  // Voice notes state
+  const [voiceNotes, setVoiceNotes] = useState<VoiceNote[]>([]);
   
   // Streak state
   const [currentStreak, setCurrentStreak] = useState<number>(0);
@@ -111,6 +127,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const storedEntries = localStorage.getItem('journalEntries');
     if (storedEntries) {
       setJournalEntries(JSON.parse(storedEntries));
+    }
+    
+    // Load voice notes
+    const storedVoiceNotes = localStorage.getItem('voiceNotes');
+    if (storedVoiceNotes) {
+      setVoiceNotes(JSON.parse(storedVoiceNotes));
     }
     
     // Load streak data
@@ -238,6 +260,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
+  // Voice note functions
+  const addVoiceNote = (audioUrl: string) => {
+    const newVoiceNote = {
+      id: Date.now().toString(),
+      audioUrl,
+      date: new Date().toISOString(),
+    };
+    
+    const updatedVoiceNotes = [...voiceNotes, newVoiceNote];
+    setVoiceNotes(updatedVoiceNotes);
+    localStorage.setItem('voiceNotes', JSON.stringify(updatedVoiceNotes));
+    
+    toast({
+      title: "Voice Note Saved",
+      description: "Your future self's message has been recorded.",
+    });
+  };
+
   // Streak functions
   const incrementStreak = () => {
     const newStreak = currentStreak + 1;
@@ -271,6 +311,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     
     journalEntries,
     addJournalEntry,
+    
+    voiceNotes,
+    addVoiceNote,
     
     currentStreak,
     incrementStreak,

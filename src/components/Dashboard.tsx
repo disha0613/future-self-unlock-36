@@ -3,10 +3,10 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/context/AppContext';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle, Clock, BookText, ArrowLeft } from 'lucide-react';
+import { CheckCircle, Clock, BookText, ArrowLeft, AudioWaveform } from 'lucide-react';
 
 const Dashboard = () => {
-  const { tasks, currentStreak } = useApp();
+  const { tasks, currentStreak, voiceNotes } = useApp();
   const navigate = useNavigate();
   
   const completedTasks = tasks.filter(task => task.completed).length;
@@ -87,6 +87,27 @@ const Dashboard = () => {
             onClick={() => navigate('/journal')}
           >
             Review Journal
+          </Button>
+        </div>
+        
+        {/* Voice Notes Card */}
+        <div className="glass-panel p-6 mb-6">
+          <div className="flex justify-between items-center mb-4">
+            <p className="text-sm text-gray-400">Future Me Voice Notes</p>
+            <div className="w-8 h-8 rounded-full bg-dark-accent flex items-center justify-center">
+              <AudioWaveform className="h-4 w-4 text-gray-400" />
+            </div>
+          </div>
+          
+          <p className="text-sm text-gray-300 mb-4">
+            {voiceNotes.length > 0 ? `You have ${voiceNotes.length} saved messages` : 'Record a message from your future self'}
+          </p>
+          
+          <Button
+            className="w-full border border-white/20 bg-dark hover:bg-dark-accent"
+            onClick={() => navigate('/voice')}
+          >
+            {voiceNotes.length > 0 ? 'Listen to Messages' : 'Record Message'}
           </Button>
         </div>
 

@@ -12,6 +12,7 @@ import NonNegotiables from "@/components/NonNegotiables";
 import ShadowJournal from "@/components/ShadowJournal";
 import Dashboard from "@/components/Dashboard";
 import NotFound from "@/pages/NotFound";
+import VoiceNotes from "@/components/VoiceNotes";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="/tasks" element={<NonNegotiables />} />
             <Route path="/journal" element={<ShadowJournal />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/voice" element={<VoiceNotes />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
