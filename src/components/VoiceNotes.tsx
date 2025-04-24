@@ -1,9 +1,8 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useApp } from '@/context/AppContext';
 import { useNavigate } from 'react-router-dom';
-import { Mic, MicOff, AudioWaveform, Play, Stop, ArrowLeft } from 'lucide-react';
+import { Mic, MicOff, AudioWaveform, Play, VolumeX, ArrowLeft } from 'lucide-react';
 
 const VoiceNotes = () => {
   const { voiceNotes, addVoiceNote } = useApp();
@@ -20,7 +19,6 @@ const VoiceNotes = () => {
   const timerRef = useRef<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   
-  // Set up audio element
   useEffect(() => {
     audioRef.current = new Audio();
     audioRef.current.onended = () => {
@@ -35,7 +33,6 @@ const VoiceNotes = () => {
     };
   }, []);
 
-  // Handle recording timer
   useEffect(() => {
     if (isRecording) {
       timerRef.current = window.setInterval(() => {
@@ -77,7 +74,6 @@ const VoiceNotes = () => {
         setAudioURL(url);
         setRecordingComplete(true);
         
-        // Stop all tracks on the stream to release the microphone
         stream.getTracks().forEach(track => track.stop());
       };
       
@@ -108,10 +104,8 @@ const VoiceNotes = () => {
   
   const playAudio = (url: string) => {
     if (audioRef.current) {
-      // Stop current audio if playing
       audioRef.current.pause();
       
-      // Play the selected audio
       audioRef.current.src = url;
       audioRef.current.play();
       setCurrentlyPlaying(url);
@@ -244,7 +238,7 @@ const VoiceNotes = () => {
                       }
                     >
                       {currentlyPlaying === note.audioUrl ? (
-                        <Stop className="h-4 w-4" />
+                        <VolumeX className="h-4 w-4" />
                       ) : (
                         <Play className="h-4 w-4" />
                       )}
